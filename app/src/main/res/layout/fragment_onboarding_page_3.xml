@@ -78,12 +78,10 @@
         android:id="@+id/native_ad_frame"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="5dp"
         android:elevation="4dp"
         android:clipToPadding="false"
         android:clipChildren="false"
-        android:background="@drawable/bg_native_ad"
         tools:ignore="MissingConstraints" />
 
 </LinearLayout>

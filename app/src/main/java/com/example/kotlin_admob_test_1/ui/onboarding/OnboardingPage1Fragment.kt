@@ -1,6 +1,7 @@
 package com.example.kotlin_admob_test_1.ui.onboarding
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,12 +13,17 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.kotlin_admob_test_1.R
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdLoader
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 
 class OnboardingPage1Fragment : Fragment() {
 
     private val viewModel: OnboardingViewModel by activityViewModels()
+    private var nativeAd: NativeAd? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,16 +36,36 @@ class OnboardingPage1Fragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val adFrame = view.findViewById<FrameLayout>(R.id.native_ad_frame)
-        adFrame.visibility = View.GONE
 
-        viewModel.nativeAd.observe(viewLifecycleOwner) { ad ->
-            if (ad != null) {
-                populateNativeAdView(ad, adFrame)
-                adFrame.visibility = View.VISIBLE
-            } else {
-                adFrame.visibility = View.GONE
-            }
+        if (!viewModel.hasShownPage1NativeAd) {
+            loadNativeAd(adFrame)
+        } else {
+            adFrame.visibility = View.GONE
         }
+    }
+
+    private fun loadNativeAd(adFrame: FrameLayout) {
+        adFrame.visibility = View.GONE // Hide by default until loaded
+        val adLoader = AdLoader.Builder(requireContext(), "ca-app-pub-3940256099942544/2247696110") // Test ID
+            .forNativeAd { ad: NativeAd ->
+                this.nativeAd = ad
+                if (isAdded) {
+                    populateNativeAdView(ad, adFrame)
+                    adFrame.visibility = View.VISIBLE
+                    viewModel.hasShownPage1NativeAd = true // Mark as shown
+                } else {
+                    ad.destroy()
+                }
+            }
+            .withAdListener(object : AdListener() {
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    Log.e("OnboardingPage1", "Ad failed to load: ${adError.message}")
+                    adFrame.visibility = View.GONE
+                }
+            })
+            .build()
+
+        adLoader.loadAd(AdRequest.Builder().build())
     }
 
     private fun populateNativeAdView(nativeAd: NativeAd, adFrame: FrameLayout) {
@@ -56,10 +82,11 @@ class OnboardingPage1Fragment : Fragment() {
         adView.mediaView?.mediaContent = nativeAd.mediaContent
 
         val closeBtn = adView.findViewById<ImageButton>(R.id.btn_close_ad)
-
         closeBtn.setOnClickListener {
             adFrame.removeAllViews()
             adFrame.visibility = View.GONE
+            this.nativeAd?.destroy()
+            this.nativeAd = null
         }
 
         if (nativeAd.body == null) {
@@ -87,5 +114,10 @@ class OnboardingPage1Fragment : Fragment() {
 
         adFrame.removeAllViews()
         adFrame.addView(adView)
+    }
+
+    override fun onDestroyView() {
+        nativeAd?.destroy()
+        super.onDestroyView()
     }
 }

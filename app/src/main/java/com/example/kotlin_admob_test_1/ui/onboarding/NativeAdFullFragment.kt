@@ -1,5 +1,6 @@
 package com.example.kotlin_admob_test_1.ui.onboarding
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,32 +11,56 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import com.example.kotlin_admob_test_1.R
-import com.google.android.gms.ads.nativead.MediaView
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdLoader
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 
 class NativeAdFullFragment : Fragment() {
 
-    private val viewModel: OnboardingViewModel by activityViewModels()
+    private var nativeAd: NativeAd? = null
+    private lateinit var adView: NativeAdView
+    var onAdClosedListener: (() -> Unit)? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_native_ad_full, container, false)
+        val view = inflater.inflate(R.layout.fragment_native_ad_full, container, false)
+        adView = view.findViewById(R.id.native_ad_view)
+        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.nativeAd.observe(viewLifecycleOwner) { ad ->
-            ad?.let {
-                val adView = view.findViewById<NativeAdView>(R.id.native_ad_view)
-                populateNativeAdView(it, adView)
-            }
+        // If the ad is already loaded, populate the view.
+        nativeAd?.let {
+            populateNativeAdView(it, adView)
         }
+    }
+
+    fun loadAd(context: Context) {
+        val adLoader = AdLoader.Builder(context, "ca-app-pub-3940256099942544/2247696110") // Test ID
+            .forNativeAd { ad: NativeAd ->
+                // Ad successfully loaded.
+                this.nativeAd = ad
+                if (isAdded) {
+                    populateNativeAdView(ad, adView)
+                }
+            }
+            .withAdListener(object : AdListener() {
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    Log.e("NativeAdFullFragment", "Ad failed to load: ${adError.message}")
+                    onAdClosedListener?.invoke()
+                }
+            })
+            .build()
+
+        adLoader.loadAd(AdRequest.Builder().build())
     }
 
     private fun populateNativeAdView(nativeAd: NativeAd, adView: NativeAdView) {
@@ -53,7 +78,7 @@ class NativeAdFullFragment : Fragment() {
 
         val closeBtn = adView.findViewById<ImageButton>(R.id.btn_close_ad)
         closeBtn.setOnClickListener {
-            viewModel.onCloseAdClicked()
+            onAdClosedListener?.invoke()
         }
 
         if (nativeAd.body == null) {
@@ -78,5 +103,10 @@ class NativeAdFullFragment : Fragment() {
         }
 
         adView.setNativeAd(nativeAd)
+    }
+
+    override fun onDestroyView() {
+        nativeAd?.destroy()
+        super.onDestroyView()
     }
 }

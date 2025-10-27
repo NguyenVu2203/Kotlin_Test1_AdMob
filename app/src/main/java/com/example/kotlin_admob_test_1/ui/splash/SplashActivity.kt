@@ -25,7 +25,6 @@ class SplashActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.progressBar)
         progressBar.progress = 0
 
-        // Initialize Mobile Ads SDK and then simulate loading.
         MobileAds.initialize(this) { initializationStatus ->
             Log.d(TAG, "Mobile Ads SDK initialized.")
             simulateLoading()

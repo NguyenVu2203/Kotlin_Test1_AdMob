@@ -8,8 +8,6 @@ class OnboardingViewModel : ViewModel() {
 
     private val _navigateToNext = MutableLiveData<Event<Unit>>()
     val navigateToNext: LiveData<Event<Unit>> = _navigateToNext
-
-    // Restore the flag for the small native ad on the first page
     var hasShownPage1NativeAd = false
 
     fun onNextClicked() {

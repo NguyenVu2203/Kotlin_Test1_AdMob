@@ -42,17 +42,21 @@ class OnboardingPage1Fragment : Fragment() {
         } else {
             adFrame.visibility = View.GONE
         }
+
+        view.findViewById<TextView>(R.id.tvNext).setOnClickListener {
+            viewModel.onNextClicked()
+        }
     }
 
     private fun loadNativeAd(adFrame: FrameLayout) {
-        adFrame.visibility = View.GONE // Hide by default until loaded
-        val adLoader = AdLoader.Builder(requireContext(), "ca-app-pub-3940256099942544/2247696110") // Test ID
+        adFrame.visibility = View.GONE
+        val adLoader = AdLoader.Builder(requireContext(), "ca-app-pub-3940256099942544/2247696110")
             .forNativeAd { ad: NativeAd ->
                 this.nativeAd = ad
                 if (isAdded) {
                     populateNativeAdView(ad, adFrame)
                     adFrame.visibility = View.VISIBLE
-                    viewModel.hasShownPage1NativeAd = true // Mark as shown
+                    viewModel.hasShownPage1NativeAd = true
                 } else {
                     ad.destroy()
                 }

@@ -73,7 +73,6 @@
                 android:textSize="15sp" />
         </RelativeLayout>
 
-        <!-- Buttons are layered on top of the root container -->
         <com.google.android.gms.ads.nativead.AdChoicesView
             android:id="@+id/ad_choices_container"
             android:layout_width="wrap_content"
@@ -92,9 +91,10 @@
 
             <ImageButton
                 android:id="@+id/btn_info_ad"
-                android:layout_width="26dp"
+                android:layout_width="13dp"
                 android:layout_height="28dp"
                 android:adjustViewBounds="true"
+                android:layout_marginRight="5dp"
                 android:background="@android:color/transparent"
                 android:contentDescription="Ad info"
                 android:scaleType="fitCenter"
@@ -102,7 +102,7 @@
 
             <ImageButton
                 android:id="@+id/btn_close_ad"
-                android:layout_width="24dp"
+                android:layout_width="13dp"
                 android:layout_height="24dp"
                 android:layout_marginTop="2dp"
                 android:adjustViewBounds="true"

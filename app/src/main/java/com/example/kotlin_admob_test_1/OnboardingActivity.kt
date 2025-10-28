@@ -23,12 +23,9 @@ class OnboardingActivity : AppCompatActivity() {
     private var currentPage = 1
     private var nativeAdFullFragment: NativeAdFullFragment? = null
 
-    // Class để thay đổi hiệu ứng lướt trang thành mờ dần (fade)
     private class FadeOutPageTransformer : ViewPager2.PageTransformer {
         override fun transformPage(page: View, position: Float) {
-            // Chống lại hiệu ứng trượt mặc định
             page.translationX = -page.width * position
-            // Làm mờ trang khi nó di chuyển ra khỏi trung tâm
             page.alpha = 1 - abs(position)
         }
     }
@@ -38,19 +35,17 @@ class OnboardingActivity : AppCompatActivity() {
         binding = ActivityOnboardingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Order: Skip | Page 1 | Ad | Page 2 | Page 3
         val adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int = 5
 
             override fun createFragment(position: Int): Fragment {
                 return when (position) {
-                    0 -> Fragment() // For skipping to MainActivity
+                    0 -> Fragment() // For skipping
                     1 -> OnboardingPage1Fragment()
                     2 -> {
                         if (nativeAdFullFragment == null) {
                             nativeAdFullFragment = NativeAdFullFragment().apply {
                                 onAdClosedListener = {
-                                    // When ad is closed, go to Page 2
                                     binding.viewPager.setCurrentItem(3, true)
                                 }
                             }
@@ -64,8 +59,6 @@ class OnboardingActivity : AppCompatActivity() {
         }
         binding.viewPager.adapter = adapter
         binding.viewPager.setCurrentItem(currentPage, false)
-
-        // Đặt hiệu ứng chuyển trang tùy chỉnh
         binding.viewPager.setPageTransformer(FadeOutPageTransformer())
 
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
@@ -79,18 +72,12 @@ class OnboardingActivity : AppCompatActivity() {
                     return
                 }
 
-                // --- This is the core logic ---
-                if (previousPage == 1 && position == 2) {
-                    // SWIPING FORWARD: From Page 1 to Ad page
-                    binding.viewPager.isUserInputEnabled = false // Disable swipe on Ad
-                    nativeAdFullFragment?.loadAd(this@OnboardingActivity)
-                } else if (previousPage == 3 && position == 2) {
-                    // SWIPING BACKWARD: From Page 2, trying to go to Ad page
-                    // Skip the ad and go directly to Page 1
+                // Disable swiping on the ad page
+                binding.viewPager.isUserInputEnabled = (position != 2)
+
+                // When swiping backward from Page 2 to the Ad page, skip the ad
+                if (previousPage == 3 && position == 2) {
                     binding.viewPager.post { binding.viewPager.setCurrentItem(1, false) }
-                } else {
-                    // All other pages have swiping enabled
-                    binding.viewPager.isUserInputEnabled = true
                 }
             }
         })

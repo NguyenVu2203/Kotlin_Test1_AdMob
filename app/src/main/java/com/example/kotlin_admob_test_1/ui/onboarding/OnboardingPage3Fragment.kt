@@ -36,7 +36,7 @@ class OnboardingPage3Fragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val adFrame = view.findViewById<FrameLayout>(R.id.native_ad_frame)
-        adFrame.visibility = View.GONE // Hide by default
+        adFrame.visibility = View.GONE
 
         view.findViewById<TextView>(R.id.tvNext).setOnClickListener {
             viewModel.onNextClicked()
